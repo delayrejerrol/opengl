@@ -107,13 +107,13 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         SetupTriangle();
         // Create the image information
         SetupImage();
-        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+        //GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
 
         // Create the triangles
-        SetupTriangle2();
+        //SetupTriangle2();
         // Create the image information
-        SetupImage2();
-        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+        //SetupImage2();
+       // GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
 
         // Set the clear color to black
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -196,7 +196,9 @@ public class GLRenderer implements GLSurfaceView.Renderer {
             //sprite.translate(-1f*ssu, 0);
            // gl.glTranslatef(0.0f, distance, 0.0f);
             //Matrix.translateM(mtrxProjectionAndView, 0, 0.0f, -2.0f, 0.0f);
-            //UpdateSprite();
+            sprite.translateY(-40.0f);
+            UpdateSprite();
+
         }
         //distance -= 0.02f;
         // Log.i("GLRenderer", "Elapse: " + elapsed);
@@ -205,7 +207,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         // Render our example
         Render(mtrxProjectionAndView);
 
-        Render2(mtrxProjectionAndView);
+        //Render2(mtrxProjectionAndView);
 
         //long time = SystemClock.uptimeMillis() % 10000L;
         //float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
@@ -494,7 +496,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         vertices = sprite.getTransformedVertices();
 
         // The order of vertexrendering for a quad
-        indices = new short[] {0, 1, 2, 0, 2, 3};
+        //indices = new short[] {0, 1, 2, 0, 2, 3};
 
         // The vertex buffer.
         ByteBuffer bb = ByteBuffer.allocateDirect(vertices.length * 4);
@@ -585,6 +587,11 @@ public class GLRenderer implements GLSurfaceView.Renderer {
             //translation.y += deltay;
         }
 
+        public void translateY(float deltaY) {
+            translation.y = deltaY;
+            Log.i("GLRenderer", "Y:" +translation.y);
+        }
+
         public void scale(float deltas) {
             scale += deltas;
         }
@@ -664,7 +671,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glGenTextures ( 1, textures, textureIndex );
 
         //GLES20.glActiveTexture( textures[textureIndex] );
-        GLES20.glBindTexture ( GLES20.GL_TEXTURE_2D, textures[textureIndex] );
+        GLES20.glBindTexture ( GLES20.GL_TEXTURE_2D, texture1 );
 
         // Set filtering
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER,

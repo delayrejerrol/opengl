@@ -24,9 +24,6 @@ import static android.opengl.GLES20.GL_CLAMP_TO_EDGE;
  */
 
 public class Coin {
-    //
-    private int currentCoin;
-
     // Geometric variables
     public static float vertices[];
     public static short indices[];
@@ -35,44 +32,32 @@ public class Coin {
     public ShortBuffer drawListBuffer;
     public FloatBuffer uvBuffer;
 
-    public float distance;
-    public float position;
+    //
+    private int currentCoin;
     public int textureId;
 
-    float angle;
-    float scale;
-    RectF base;
+    private RectF base;
     PointF translation;
-
-    private float ssu = 1.0f;
 
     public Coin(int currentCoin, float pointX, float pointY) {
         this.currentCoin = currentCoin;
 
         // Initialise our intital size around the 0,0 point
-        base = new RectF(-50f*ssu, 50f*ssu, 50f*ssu, -50f*ssu);
+        base = new RectF(-50f, 50f, 50f, -50f);
 
         // Initial translation
         translation = new PointF(pointX, pointY);
 
         // We start with our inital size
-        scale = 1f;
+        //scale = 1f;
 
         // We start in our inital angle
-        angle = 0f;
+        //angle = 0f;
 
-        // Get information of sprite.
-        vertices = getTransformedVertices();
+        updateVertices();
 
         // The order of vertexrendering for a quad
         indices = new short[] {0, 1, 2, 0, 2, 3};
-
-        // The vertex buffer.
-        ByteBuffer bb = ByteBuffer.allocateDirect(vertices.length * 4);
-        bb.order(ByteOrder.nativeOrder());
-        vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(vertices);
-        vertexBuffer.position(0);
 
         // initialize byte buffer for the draw list
         ByteBuffer dlb = ByteBuffer.allocateDirect(indices.length * 2);
@@ -90,7 +75,7 @@ public class Coin {
         };
 
         // The texture buffer
-        bb = ByteBuffer.allocateDirect(uvs.length * 4);
+        ByteBuffer bb = ByteBuffer.allocateDirect(uvs.length * 4);
         bb.order(ByteOrder.nativeOrder());
         uvBuffer = bb.asFloatBuffer();
         uvBuffer.put(uvs);
@@ -152,6 +137,22 @@ public class Coin {
         GLES20.glDisableVertexAttribArray(mTexCoordLoc);
     }
 
+    public void setTextureId(int textureId) {
+        this.textureId = textureId;
+    }
+
+    public void updateVertices() {
+        // Get information of sprite.
+        vertices = getTransformedVertices();
+
+        // The vertex buffer.
+        ByteBuffer bb = ByteBuffer.allocateDirect(vertices.length * 4);
+        bb.order(ByteOrder.nativeOrder());
+        vertexBuffer = bb.asFloatBuffer();
+        vertexBuffer.put(vertices);
+        vertexBuffer.position(0);
+    }
+
     public int getCurrentCoin() {
         return this.currentCoin;
     }
@@ -172,22 +173,17 @@ public class Coin {
         // Update our location.
         translation.x += deltax;
         translation.y += deltay;
-    }
 
-    public void scale(float deltas) {
-        scale += deltas;
-    }
-
-    public void rotate(float deltaa) {
-        angle += deltaa;
+        // Get the current Y position of coin.
+        updateVertices();
     }
 
     public float[] getTransformedVertices() {
         // Start with scaling
-        float x1 = base.left * scale;
-        float x2 = base.right * scale;
-        float y1 = base.bottom * scale;
-        float y2 = base.top * scale;
+        float x1 = base.left;
+        float x2 = base.right;
+        float y1 = base.bottom;
+        float y2 = base.top;
 
         // We now detach from our Rect because when rotating,
         // we need the seperate points, so we do so in opengl order
@@ -198,18 +194,18 @@ public class Coin {
 
         // We create the sin and cos function once,
         // so we do not have calculate them each time.
-        float s = (float) Math.sin(angle);
-        float c = (float) Math.cos(angle);
+        //float s = (float) Math.sin(angle);
+        //float c = (float) Math.cos(angle);
 
         // Then we rotate each point
-        one.x = x1 * c - y2 * s;
+        /*one.x = x1 * c - y2 * s;
         one.y = x1 * s + y2 * c;
         two.x = x1 * c - y1 * s;
         two.y = x1 * s + y1 * c;
         three.x = x2 * c - y1 * s;
         three.y = x2 * s + y1 * c;
         four.x = x2 * c - y2 * s;
-        four.y = x2 * s + y2 * c;
+        four.y = x2 * s + y2 * c;*/
 
         // Finally we translate the sprite to its correct position.
         one.x += translation.x;
