@@ -1,24 +1,12 @@
 package com.project.jerrol.coinfalling.opengl;
 
 import android.content.Context;
-import android.graphics.PointF;
-import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.os.SystemClock;
 import android.util.Log;
 
-import com.project.jerrol.coinfalling.R;
-import com.project.jerrol.coinfalling.common.RawResourceReader;
-import com.project.jerrol.coinfalling.common.ShaderHelper;
-import com.project.jerrol.coinfalling.common.TextureHelper;
-import com.project.jerrol.coinfalling.common.riGraphicTools;
 import com.project.jerrol.coinfalling.model.Coins;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -49,6 +37,7 @@ public class CoinRenderer implements GLSurfaceView.Renderer {
     // Our coins collection
     private Coins mCoins;
 
+    private boolean hasCoinVisible;
     private int coinCount;
 
     public CoinRenderer(Context context, int coinCount) {
@@ -82,7 +71,8 @@ public class CoinRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
-        mCoins.draw(mtrxProjectionAndView);
+        if (isHasCoinVisible())
+            mCoins.draw(mtrxProjectionAndView);
     }
 
 
@@ -94,7 +84,8 @@ public class CoinRenderer implements GLSurfaceView.Renderer {
         mScreenWidth = width;
         mScreenHeight = height;
 
-        mCoins.initializeCoinPosition(coinCount, mScreenWidth, mScreenHeight);
+        mCoins.setScreenSize(mScreenWidth, mScreenHeight);
+        mCoins.initializeCoin(coinCount);
         mCoins.loadVertexAndFragmentShader();
 
         // Redo the Viewport, making it fullscreen.
@@ -117,7 +108,7 @@ public class CoinRenderer implements GLSurfaceView.Renderer {
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mtrxProjectionAndView, 0, mtrxProjection, 0, mtrxView, 0);
 
-        //Matrix.translateM(mtrxProjectionAndView, 0, 0.0f, mScreenHeight, 0.0f);
+        Matrix.translateM(mtrxProjectionAndView, 0, 0.0f, mScreenHeight, 0.0f);
         SetupScaling();
     }
 
@@ -138,11 +129,24 @@ public class CoinRenderer implements GLSurfaceView.Renderer {
             ssu = ssx;
     }
 
-    public void onPause() {
+    public void onPauseRender() {
          /* Do stuff to pause the renderer */
+         if (mCoins != null) {
+             Log.i("CoinRenderer", "onPauseRenderer called");
+             mCoins.stopAnimation();
+         }
     }
 
-    public void onResume() {
+    public void onResumeRender(int coinCount) {
         /* Do stuff to resume the renderer */
+        mCoins.restartAnimation(coinCount);
+    }
+
+    public void setHasCoinVisible(boolean isCoinVisible) {
+        hasCoinVisible = isCoinVisible;
+    }
+
+    public boolean isHasCoinVisible() {
+        return hasCoinVisible;
     }
 }

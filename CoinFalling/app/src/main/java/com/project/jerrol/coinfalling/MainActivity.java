@@ -17,7 +17,7 @@ import com.project.jerrol.coinfalling.opengl.CoinGL;
 
 public class MainActivity extends AppCompatActivity implements CoinListener {
 
-    GLSurfaceView glSurface;
+    CoinGL glSurface;
 
     EditText editText;
     Button button;
@@ -36,12 +36,7 @@ public class MainActivity extends AppCompatActivity implements CoinListener {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         //Create an Instance with this Activity
-        glSurface = new CoinGL(this, 10);
-
-        // glSurface.setEGLContextClientVersion(2);
-
-        //Set our own Renderer
-        //glSurface.setRenderer(new MainRenderer(this));
+        glSurface = new CoinGL(this, 0);
 
         // Set our view.
         setContentView(R.layout.activity_main);
@@ -59,9 +54,7 @@ public class MainActivity extends AppCompatActivity implements CoinListener {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Handler handler = new Handler();
-                RefreshRunnable refreshRunnable = new RefreshRunnable(Integer.parseInt(editText.getText().toString()), true);
-                handler.postDelayed(refreshRunnable, 500);
+                glSurface.onResumeGL(Integer.parseInt(editText.getText().toString()));
             }
         });
     }
@@ -85,36 +78,7 @@ public class MainActivity extends AppCompatActivity implements CoinListener {
     @Override
     public void onCoinFallingComplete(boolean isComplete) {
         Log.i("MainActivity", "Destroy render");
-        glSurface.postInvalidate();
-        //glSurface.onPause();
-        //Handler handler = new Handler();
-        //RefreshRunnable refreshRunnable = new RefreshRunnable(Integer.parseInt(editText.getText().toString()), false);
-        //handler.postDelayed(refreshRunnable, 500);
+        glSurface.onPauseGL();
     }
 
-    class RefreshRunnable implements Runnable {
-
-        private int coinCount;
-        private boolean start;
-
-        public RefreshRunnable(int coinCount, boolean start) {
-            this.coinCount = coinCount;
-            this.start = start;
-        }
-
-        @Override
-        public void run() {
-            if (start) startNewGL();
-            else stopNewGL();
-        }
-
-        private void startNewGL() {
-            glSurface = new CoinGL(MainActivity.this, coinCount);
-            layout.addView(glSurface, glParams);
-        }
-
-        private void stopNewGL() {
-            layout.removeView(glSurface);
-        }
-    }
 }

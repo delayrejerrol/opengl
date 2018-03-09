@@ -46,10 +46,31 @@ public class CoinGL extends GLSurfaceView {
     @Override
     public void onResume() {
         super.onResume();
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
+    }
+
+    public void onResumeGL(final int coinCount) {
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                mRenderer.onResumeRender(coinCount);
+                mRenderer.setHasCoinVisible(true);
+            }
+        });
+    }
+
+    public void onPauseGL() {
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                mRenderer.setHasCoinVisible(false);
+                mRenderer.onPauseRender();
+            }
+        });
     }
 }
