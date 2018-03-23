@@ -6,6 +6,7 @@
 #define COINFALLINGCPP_COINRENDERER_H
 
 #include <GLES2/gl2.h>
+#include <coin/model/Coin.h>
 
 class CoinRenderer {
 
@@ -20,6 +21,13 @@ public:
 
     void draw();
 
+    // GL handle
+    GLuint mPositionHandle;
+    GLuint mTexCoord;
+    GLuint mMatrixHandle;
+    GLuint mSamplerLoc;
+    GLuint *textures;
+
 private:
     // Our matrices
     float matrixProjection[16];
@@ -33,12 +41,17 @@ private:
     float scaleX;
     float scaleValue;
 
-    float screenWidth = 1280.0;
-    float screenHeight = 768.0;
+    GLsizei screenWidth = 1280;
+    GLsizei screenHeight = 768;
 
     GLuint programHandle;
     GLuint imageHandle;
 
+    Coin coin = Coin(1, 50.0f, 50.0f);
+
+    int mCurrentTime;
+
+    void drawCoin();
     void setupScaling(int width, int height);
 };
 #endif //COINFALLINGCPP_COINRENDERER_H

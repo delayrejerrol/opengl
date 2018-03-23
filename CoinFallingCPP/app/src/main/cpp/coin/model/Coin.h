@@ -4,28 +4,25 @@
 
 #ifndef COINFALLINGCPP_COIN_H
 #define COINFALLINGCPP_COIN_H
+
+#include <GLES2/gl2.h>
+
 class Coin {
 
 public:
-    const float *vertices[];
-    const float *indices[];
-    const float *uvCoord[];
-
-    Coin(int *currentCoinFace, float *pointX, float *pointY);
+    Coin(int currentCoinFace, float pointX, float pointY);
 
     int getCurrentCoinFace();
-    int getNextCoinFace(int currentCoinFace);
-    int getTextureId();
-    float getTransformVertices()[12]; // Return 4 side of vertices
+    int getNextCoinFace();
+    GLuint getTextureId();
     float getY();
-    void Render();
-    void setTextureId(int textureId);
+    void Render(GLuint textureId, GLuint positionHandle, GLuint texCoord, GLint matrixHandle, GLint samplerLoc);
+    void setTextureId(GLuint textureId);
     void translate(float deltaX, float deltaY);
 
 private:
-    const int *currentCoinFace;
-    const int *textureId;
-    const float *base[];
-    const float *translation[];
+    int mCurrentCoinFace;
+    GLuint mTextureId;
+    void updateTransformedVertices();
 };
 #endif //COINFALLINGCPP_COIN_H

@@ -11,7 +11,7 @@ import java.nio.ShortBuffer
 /**
  * Created by jerro on 3/6/2018.
  */
-class Coin(currentCoinFace: Int, pointX: Float, pointY: Float) {
+class Coin(currentCoinFace: Int, pointX: Float, pointY: Float, scaledValue: Float) {
     // Geometric variables
     private lateinit var mVertices: FloatArray
     private var mIndices: ShortArray
@@ -28,12 +28,17 @@ class Coin(currentCoinFace: Int, pointX: Float, pointY: Float) {
     private var mBase: RectF
     private var mTranslation: PointF
 
+    public var mTextures = IntArray(8)
+
+    private var mScaledValue = 0
+
     init {
         // Initialize the current coin image position.
-        this.mCurrentCoinFace = currentCoinFace
+        // this.mCurrentCoinFace = currentCoinFace
+        this.mTextureId = currentCoinFace
 
         // Initialize our initial size of coin around the 0,0 point
-        mBase = RectF(-50f, 50f, 50f, -50f)
+        mBase = RectF(-10f * scaledValue, 10f * scaledValue, 10f * scaledValue, -10f * scaledValue)
 
         // Initialize the current coin position (translate)
         mTranslation = PointF(pointX, pointY)
@@ -65,6 +70,19 @@ class Coin(currentCoinFace: Int, pointX: Float, pointY: Float) {
         mUVBuffer.position(0)
     }
 
+    /*fun getCurrentCoinFace(): Int {
+        return mCurrentCoinFace
+    }
+
+    fun getNextCoinFace(currentCoinFace: Int): Int {
+        var nextCoinFace = currentCoinFace
+
+        nextCoinFace = if (nextCoinFace == 7) 0 else nextCoinFace.inc()
+
+        this.mCurrentCoinFace = nextCoinFace
+        return nextCoinFace
+    }*/
+
     fun getCurrentCoinFace(): Int {
         return mCurrentCoinFace
     }
@@ -78,8 +96,27 @@ class Coin(currentCoinFace: Int, pointX: Float, pointY: Float) {
         return nextCoinFace
     }
 
+    /*fun getTextures(): Int {
+        return mTextures[0]
+    }*/
+
+    fun getCurrentTextureId(): Int {
+        return mTextures[this.mTextureId]
+    }
+
+    fun getTextures(): IntArray {
+        return mTextures
+    }
+
     fun getTextureId(): Int {
-        return mTextureId
+        //return mTextureId
+        var nextTextureId = mTextureId
+
+        nextTextureId = if (nextTextureId == 7) 0 else nextTextureId.inc()
+
+        this.mTextureId = nextTextureId
+        //return mTextures[nextTextureId]
+        return nextTextureId
     }
 
     fun getTransformedVertices(): FloatArray {
@@ -125,9 +162,6 @@ class Coin(currentCoinFace: Int, pointX: Float, pointY: Float) {
     // Render each coin
     fun Render(matrix: FloatArray, textureId: Int,
                positionHandle: Int, textCoord: Int, matrixHandle: Int, samplerLoc: Int) {
-        // Bind the texture to this unit
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
-
         // Enable generic vertex attribute array
         GLES20.glEnableVertexAttribArray(positionHandle)
         GLES20.glEnableVertexAttribArray(textCoord)
@@ -138,19 +172,30 @@ class Coin(currentCoinFace: Int, pointX: Float, pointY: Float) {
         GLES20.glVertexAttribPointer(textCoord, 2, GLES20.GL_FLOAT, false, 0, mUVBuffer)
         // Apply the projection and view transformation
         GLES20.glUniformMatrix4fv(matrixHandle, 1, false, matrix, 0)
+        // Pass in the texture information
+        // Set the active texture unit to texture unit 0.
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        // Bind the texture to this unit
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
         //  Set the sampler texture unit to 0, where we have saved the texture
         GLES20.glUniform1i(samplerLoc, 0)
 
         // Draw the triangle
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mIndices.size, GLES20.GL_UNSIGNED_SHORT, mDrawListBuffer)
+        // GLES20.glDrawArrays(GLES20.GL_TRIANGLES,0, mIndices.size)
 
         // Disable vertex array
-        GLES20.glDisableVertexAttribArray(positionHandle)
-        GLES20.glDisableVertexAttribArray(textCoord)
+        //GLES20.glDisableVertexAttribArray(positionHandle)
+        //GLES20.glDisableVertexAttribArray(textCoord)
+    }
+
+    fun setTextures(textures: IntArray) {
+        this.mTextures = textures
     }
 
     fun setTextureId(textureId: Int) {
         mTextureId = textureId
+        //mTextures[mTextureId] = mTextures[textureId]
     }
 
     fun translate(deltaX: Float, deltaY: Float) {

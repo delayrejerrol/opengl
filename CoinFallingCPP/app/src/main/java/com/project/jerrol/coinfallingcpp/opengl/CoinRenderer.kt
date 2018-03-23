@@ -1,6 +1,7 @@
 package com.project.jerrol.coinfallingcpp.opengl
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.opengl.GLSurfaceView
 import android.util.Log
 import javax.microedition.khronos.egl.EGLConfig
@@ -9,7 +10,7 @@ import javax.microedition.khronos.opengles.GL10
 /**
  * Created by jerro on 3/6/2018.
  */
-class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
+class CoinRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
     override fun onDrawFrame(gl: GL10?) {
         nativeDrawFrame()
@@ -20,10 +21,10 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        nativeSurfaceCreate()
+        nativeSurfaceCreate(context.assets)
     }
 
-    external fun nativeSurfaceCreate()
+    external fun nativeSurfaceCreate(assetManager: AssetManager)
     external fun nativeSurfaceChange(width: Int, height: Int)
     external fun nativeDrawFrame()
 

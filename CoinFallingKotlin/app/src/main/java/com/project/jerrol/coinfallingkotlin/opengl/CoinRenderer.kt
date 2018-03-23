@@ -131,9 +131,9 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     // Our matrices
-    private val mMatrixProjection = FloatArray(16)
-    private val mMatrixView = FloatArray(16)
-    private val mMatrixProjectionView = FloatArray(16)
+    private val mMatrixProjection = FloatArray(64)
+    private val mMatrixView = FloatArray(64)
+    private val mMatrixProjectionView = FloatArray(64)
 
     // Our Screen Resolution
     private var mScreenWidth = 1280f
@@ -151,6 +151,10 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     // The coin faces holder
     private var mCoinBitmaps = arrayOfNulls<Bitmap>(8)
 
+    // The coin textures
+    private var mTextures = IntArray(8)
+    private var mTextureId: Int = 0
+
     private var mProgramHandle = 0
     private var mImageProgramHandle = 0
     private var mCurrentTime = 0
@@ -164,7 +168,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     private var mSamplerLoc = 0
 
     init {
-        createCoinBitmaps()
+        // createCoinBitmaps()
     }
 
     override fun onDrawFrame(gl: GL10?) {
@@ -186,7 +190,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
         GLES20.glViewport(0, 0, mScreenWidth.toInt(), mScreenHeight.toInt())
 
         // Clear our matrices
-        for (i in 0 until 16) {
+        for (i in 0 until 64) {
             mMatrixProjection[i] = 0.0f
             mMatrixView[i] = 0.0f
             mMatrixProjectionView[i] = 0.0f
@@ -202,7 +206,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
         Matrix.multiplyMM(mMatrixProjectionView, 0, mMatrixProjection, 0, mMatrixView, 0)
 
         // Set camera to the upper top of the screen
-        Matrix.translateM(mMatrixProjectionView, 0, 0.0f, mScreenHeight, 0.0f)
+        // Matrix.translateM(mMatrixProjectionView, 0, 0.0f, mScreenHeight, 0.0f)
 
         setupScaling()
     }
@@ -236,6 +240,18 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
         mMatrixHandle = GLES20.glGetUniformLocation(mImageProgramHandle, "uMVPMatrix")
         // Get handle to textures locations
         mSamplerLoc = GLES20.glGetUniformLocation(mImageProgramHandle, "s_texture")
+
+        // Generate textures
+        for (i in mCoinFaces.indices) {
+            mTextures[i] = loadGLTexture(i)
+            GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[i])
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[i])
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR)
+        }
     }
 
     fun createCoinBitmaps() {
@@ -248,27 +264,37 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     fun drawCoin() {
-        GLES20.glUseProgram(mProgramHandle)
+        //GLES20.glUseProgram(mProgramHandle)
         GLES20.glUseProgram(mImageProgramHandle)
 
-        val slowTime = SystemClock.uptimeMillis() % 100000L
-
+        val elapseRealtime = SystemClock.elapsedRealtime() % 100000L
+        Log.i("CoinRenderer", "elapseRealtime: $elapseRealtime")
+        //val slowTime = SystemClock.uptimeMillis() % 100000L
+        //Log.i("CoinRenderer", "slowTime: $slowTime")
         // translate each coin every 1 sec
-        val translateCoinPositionY = (0.01f) * (slowTime.toInt())
+        val translateCoinPositionY = (0.01f) * (elapseRealtime.toInt())
         val elapse = translateCoinPositionY.toInt()
 
+        Log.i("CoinRenderer", "Elapse: $elapse")
         for (coin in mCoinCollection) {
             if (mCurrentTime < elapse) {
                 val nextCoinFace = coin.getNextCoinFace(coin.getCurrentCoinFace())
-                coin.setTextureId(updateGLTexture(coin.getTextureId(), nextCoinFace))
-                coin.translate(0.0f, -20f)
+                //coin.setTextureId(updateGLTexture(coin.getTextureId(), nextCoinFace))
+                //coin.setTextureId(updateGLTexture(coin.getTextureId(), mTextures[nextCoinFace]))
+                coin.setTextureId(coin.getTextureId())
+                coin.translate(0.0f, -(25.0f * sScaleValue))
             }
-            coin.Render(mMatrixProjectionView, coin.getTextureId(),
+            /*coin.Render(mMatrixProjectionView, coin.getTextureId(),
+                    mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc)*/
+
+            coin.Render(mMatrixProjectionView, coin.getCurrentTextureId(),
                     mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc)
         }
 
         if (!hasCoinVisible()) {
             Log.i("Coins", "All coins y < 0")
+            //GLES20.glDeleteProgram(mProgramHandle)
+            GLES20.glDeleteProgram(mImageProgramHandle)
             val listener = context as ICoinAnimationListener
             listener.onTranslateYComplete(true)
         }
@@ -285,15 +311,63 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
             val pointX = random.nextInt(mScreenWidth.toInt()).toFloat()
             var pointY = random.nextInt(mScreenHeight.toInt()).toFloat()
 
-            val coin = Coin(currentCoinFace, pointX, pointY)
-            coin.setTextureId(loadGLTexture(i, currentCoinFace))
+            val coin = Coin(currentCoinFace, pointX, pointY + mScreenHeight, sScaleValue)
+            // coin.setTextureId(loadGLTexture(i, currentCoinFace))
+            // coin.setTextureId(mTextures[currentCoinFace])
+            coin.setTextures(mTextures)
 
             mCoinCollection.add(coin)
         }
     }
 
+    fun getTextureId(): Int {
+        if (mTextureId == 7) {
+            mTextureId = 0
+        } else {
+            mTextureId++
+        }
+        return mTextureId
+    }
+
     fun isClearSurface(): Boolean {
         return mClearSurface
+    }
+
+    fun loadGLTexture(coinFaceIndex: Int): Int {
+        val textureHandle = IntArray(1)
+
+        GLES20.glGenTextures(1, textureHandle, 0)
+
+        if (textureHandle[0] == 0) {
+            throw RuntimeException("Error generating texture name.")
+        }
+
+        val options = BitmapFactory.Options()
+        options.inScaled = false
+
+        val bitmap = BitmapFactory.decodeResource(context.resources, mCoinFaces[coinFaceIndex], options)
+
+        // Bind texture
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0])
+
+        // Set filtering
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
+
+        // Set wrapping mode
+        //GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        //GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+
+        /*for (i in mCoinFaces.indices) {
+            mCoinBitmaps[i] = BitmapFactory.decodeResource(context.resources, mCoinFaces[i], options)
+        }*/
+
+        // Load the bitmap to the bound texture
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+
+        bitmap.recycle()
+
+        return textureHandle[0]
     }
 
     fun loadGLTexture(textureIndex: Int, coinFaceIndex: Int): Int {
@@ -339,7 +413,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     fun updateGLTexture(textureIndex: Int, coinFaceIndex: Int): Int {
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureIndex)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[textureIndex])
 
         // Set filtering
         // GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
@@ -357,7 +431,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     private fun hasCoinVisible(): Boolean {
         var hasCoinVisible = false
         for (coin in mCoinCollection) {
-            if (coin.getY() > (-50.0f - mScreenHeight)) {
+            if (coin.getY() > 0) {
                 hasCoinVisible = true
                 break
             }

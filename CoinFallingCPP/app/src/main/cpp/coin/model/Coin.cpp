@@ -4,102 +4,141 @@
 
 #include "Coin.h"
 
-Coin::Coin(int *currentCoinFace, float *pointX, float *pointY) {
-    this->currentCoinFace = currentCoinFace;
+GLfloat *mVertices;
+// The order of vertex rendering for a quad
+float mIndices[] = {0, 1, 2,
+                    0, 2, 3};
+float mUVCoord[] = {
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f
+};
 
-    this->base = {-50f, 50f, 50f, -50f};
+// Rect
+//float mBase[] = { -50.0f, 50.0f, 50.0f, -50.0f };
+GLfloat *mBase;
 
-    this->translation = {pointX, pointY};
+// Point
+GLfloat *mTranslation;
 
-    vertices = getTransformVertices();
+Coin::Coin(int currentCoinFace, float pointX, float pointY) {
+    mCurrentCoinFace = currentCoinFace;
 
-    // The order of vertex rendering for a quad
-    indices = {
-            0, 1, 2,
-            0, 2, 3
-    };
+    mBase[0] = -50.0f; // Left
+    mBase[1] = 50.0f;  // Top
+    mBase[2] = 50.0f;  // Right
+    mBase[3] = -50.0f; // Bottom
 
-    // Create our UV coordinates
-    uvCoord = {
-            0.0f, 0.0f,
-            0.0f, 0.1f,
-            1.0f, 1.0f,
-            1.0f, 0.0f
-    };
+    mTranslation[0] = pointX;
+    mTranslation[1] = pointY;
 }
 
-int Coin::getCurrentCoinFace() {
-    return this->currentCoinFace;
-}
-
-int Coin::getNextCoinFace(int currentCoinFace) {
-    int nextCoinFace = currentCoinFace;
-    if (nextCoinFace == 7)
-        nextCoinFace = 0;
-    else
-        nextCoinFace++;
-
-    this->currentCoinFace = nextCoinFace;
-    return nextCoinFace;
-}
-
-int Coin::getTextureId() {
-    return this->textureId;
-}
-
-float Coin::getTransformVertices()[12] {
-    const float *left   = this->base[0]; // x1
-    const float *right  = this->base[1]; // x2
-    const float *bottom = this->base[2]; // y1
-    const float *top    = this->base[3]; // y2
+void Coin::updateTransformedVertices() {
+    // Start with scaling
+    float x1 = mBase[0];
+    float x2 = mBase[1];
+    float y1 = mBase[2];
+    float y2 = mBase[3];
 
     // We now detach from our Rect because when rotating,
     // we need the seperate points, so we do so in opengl order
-    const float *one[] = { left, top };
-    const float *two[] = { left, bottom };
-    const float *three[] = { right, bottom };
-    const float *four[] = { right, top };
+    float one[] = {x1, y2};
+    float two[] = {x1, y1};
+    float three[] = {x2, y1};
+    float four[] = {x2, y2};
 
     // Finally we translate the coin to its correct position.
-    one[0] = this->translation[0];
-    one[1] = this->translation[1];
+    one[0] += mTranslation[0];
+    one[1] += mTranslation[1];
 
-    two[0] = this->translation[0];
-    two[1] = this->translation[1];
+    two[0] += mTranslation[0];
+    two[1] += mTranslation[1];
 
-    three[0] = this->translation[0];
-    three[1] = this->translation[1];
+    three[0] += mTranslation[0];
+    three[1] += mTranslation[1];
 
-    four[0] = this->translation[0];
-    four[1] = this->translation[1];
+    four[0] += mTranslation[0];
+    four[1] += mTranslation[1];
 
-    // We now return our float array of vertices.
-    return {
-            one[0], one[1], 0.0f,
-            two[0], two[1], 0.0f,
-            three[0], three[1], 0.0f,
-            four[0], four[1], 0.0f
-    };
+    // Left
+    mVertices[0] = one[0];
+    mVertices[1] = one[1];
+    mVertices[3] = 0.0f;
+
+    // Top
+    mVertices[4] = two[0];
+    mVertices[5] = two[1];
+    mVertices[6] = 0.0f;
+
+    // Right
+    mVertices[7] = three[0];
+    mVertices[8] = three[1];
+    mVertices[9] = 0.0f;
+
+    // Bottom
+    mVertices[10] = four[0];
+    mVertices[11] = four[1];
+    mVertices[12] = 0.0f;
+}
+
+void Coin::Render(GLuint textureId, GLuint positionHandle, GLuint texCoord, GLint matrixHandle, GLint samplerLoc) {
+    // Bind the texture to this unit
+    glBindTexture(GL_TEXTURE_2D, textureId);
+
+    // Enable generic vertex attribute array
+    glEnableVertexAttribArray(positionHandle);
+    glEnableVertexAttribArray(texCoord);
+
+    // Prepare the triangle coordinate data
+    glVertexAttribPointer(positionHandle, 3, GL_FLOAT, GL_FALSE, 0, mVertices);
+    // Prepare the texture coordinates
+    glVertexAttribPointer(texCoord, 2, GL_FLOAT, GL_FALSE, 0, mUVCoord);
+    // Apply the projection and view transformation
+    glUniformMatrix4fv(matrixHandle, 1, GL_FALSE, 0);
+    //  Set the sampler texture unit to 0, where we have saved the texture
+    glUniform1i(samplerLoc, 0);
+
+    // Draw the triangle
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mIndices);
+
+    // Disable vertex array
+    glDisableVertexAttribArray(positionHandle);
+    glDisableVertexAttribArray(texCoord);
+}
+
+int Coin::getCurrentCoinFace() {
+    return mCurrentCoinFace;
+}
+
+int Coin::getNextCoinFace() {
+    int nextCoinFace = mCurrentCoinFace;
+
+    if (nextCoinFace == 7) {
+        nextCoinFace = 0;
+    } else {
+        nextCoinFace++;
+    }
+
+    mCurrentCoinFace = nextCoinFace;
+    return nextCoinFace;
+}
+
+GLuint Coin::getTextureId() {
+    return mTextureId;
+}
+
+void Coin::setTextureId(GLuint textureId) {
+    mTextureId = textureId;
 }
 
 float Coin::getY() {
-    return this->translation[1];
-}
-
-void Coin::Render() {
-
-}
-
-void Coin::setTextureId(int textureId) {
-    this->textureId = textureId;
+    return mTranslation[1];
 }
 
 void Coin::translate(float deltaX, float deltaY) {
-    this->translation[0] = deltaX;
-    this->translation[1] = deltaY;
+    mTranslation[0] += deltaX;
+    mTranslation[1] += deltaY;
 
-    vertices = getTransformVertices();
+    updateTransformedVertices();
 }
-
-// Render
-

@@ -110,9 +110,9 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
 
         // Create the triangles
-        //SetupTriangle2();
+        SetupTriangle2();
         // Create the image information
-        //SetupImage2();
+        SetupImage2();
        // GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
 
         // Set the clear color to black
@@ -207,7 +207,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         // Render our example
         Render(mtrxProjectionAndView);
 
-        //Render2(mtrxProjectionAndView);
+        Render2(mtrxProjectionAndView);
 
         //long time = SystemClock.uptimeMillis() % 10000L;
         //float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
@@ -223,7 +223,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         // Set the active texture unit to texture unit 0.
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+       // GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 
         // Bind the texture to this unit.
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture1);
@@ -277,7 +277,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     private void Render2(float[] m) {
         // Set the active texture unit to texture unit 0.
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        //GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 
         // Bind the texture to this unit.
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture2);
