@@ -21,12 +21,15 @@ class CoinRenderer(private val context: Context) : GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        nativeSurfaceCreate(context.assets)
+        val assetManager = context.assets
+        nativeSurfaceCreate(assetManager)
     }
 
     external fun nativeSurfaceCreate(assetManager: AssetManager)
     external fun nativeSurfaceChange(width: Int, height: Int)
     external fun nativeDrawFrame()
+    external fun drawNewCoin(coinSize: Int)
+    external fun nativeClearSurface(isClearSurface: Boolean)
 
     companion object {
         init {

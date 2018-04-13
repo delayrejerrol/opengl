@@ -81,7 +81,7 @@ public:
     */
     static float length(float x, float y, float z);
 
-    static void orthoM(float m[], int mOffset,
+    static Matrix *orthoM(int mOffset,
                        float left, float right, float bottom, float top,
                        float near, float far);
 };

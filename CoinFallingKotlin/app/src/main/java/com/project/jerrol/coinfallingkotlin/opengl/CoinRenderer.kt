@@ -174,7 +174,9 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     override fun onDrawFrame(gl: GL10?) {
         // Clear screen and depth buffer,
         // we have set the clear color as black transparent
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+        //GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
         GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
@@ -197,7 +199,8 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
         }
 
         // Setup our screen width and height for normal coin translation
-        Matrix.orthoM(mMatrixProjection, 0, 0f, mScreenWidth, 0.0f, mScreenHeight, 0f, 50f)
+        //Matrix.orthoM(mMatrixProjection, 0, 0f, mScreenWidth, 0.0f, mScreenHeight, 0f, 50f)
+        Matrix.frustumM(mMatrixProjection, 0, 0f, mScreenWidth, 0.0f, mScreenHeight, 1.0f, 50f)
 
         // Set the camera position (View matrix)
         Matrix.setLookAtM(mMatrixView, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1.0f, 0.0f)
@@ -282,7 +285,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
                 //coin.setTextureId(updateGLTexture(coin.getTextureId(), nextCoinFace))
                 //coin.setTextureId(updateGLTexture(coin.getTextureId(), mTextures[nextCoinFace]))
                 coin.setTextureId(coin.getTextureId())
-                coin.translate(0.0f, -(25.0f * sScaleValue))
+                coin.translate(0.0f, -(15.0f * sScaleValue))
             }
             /*coin.Render(mMatrixProjectionView, coin.getTextureId(),
                     mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc)*/
@@ -294,7 +297,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
         if (!hasCoinVisible()) {
             Log.i("Coins", "All coins y < 0")
             //GLES20.glDeleteProgram(mProgramHandle)
-            GLES20.glDeleteProgram(mImageProgramHandle)
+            // GLES20.glDeleteProgram(mImageProgramHandle)
             val listener = context as ICoinAnimationListener
             listener.onTranslateYComplete(true)
         }

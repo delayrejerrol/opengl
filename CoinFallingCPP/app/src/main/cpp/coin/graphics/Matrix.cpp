@@ -349,8 +349,7 @@ float Matrix::length(float x, float y, float z) {
     return (float) sqrt(x * x + y * y + z * z);
 }
 
-void
-Matrix::orthoM(float *m, int mOffset, float left, float right, float bottom, float top, float near,
+Matrix *Matrix::orthoM(int mOffset, float left, float right, float bottom, float top, float near,
                float far) {
     if (left == right) {
         //throw new IllegalArgumentException("left == right");
@@ -371,23 +370,28 @@ Matrix::orthoM(float *m, int mOffset, float left, float right, float bottom, flo
     const float tx = -(right + left) * r_width;
     const float ty = -(top + bottom) * r_height;
     const float tz = -(far + near) * r_depth;
-    m[mOffset + 0] = x;
-    m[mOffset + 5] = y;
-    m[mOffset +10] = z;
-    m[mOffset +12] = tx;
-    m[mOffset +13] = ty;
-    m[mOffset +14] = tz;
-    m[mOffset +15] = 1.0f;
-    m[mOffset + 1] = 0.0f;
-    m[mOffset + 2] = 0.0f;
-    m[mOffset + 3] = 0.0f;
-    m[mOffset + 4] = 0.0f;
-    m[mOffset + 6] = 0.0f;
-    m[mOffset + 7] = 0.0f;
-    m[mOffset + 8] = 0.0f;
-    m[mOffset + 9] = 0.0f;
-    m[mOffset + 11] = 0.0f;
+    Matrix *m = new Matrix();
+    if (m != NULL) {
+        float *d = m->mData;
+        d[mOffset + 0] = x;
+        d[mOffset + 5] = y;
+        d[mOffset +10] = z;
+        d[mOffset +12] = tx;
+        d[mOffset +13] = ty;
+        d[mOffset +14] = tz;
+        d[mOffset +15] = 1.0f;
+        d[mOffset + 1] = 0.0f;
+        d[mOffset + 2] = 0.0f;
+        d[mOffset + 3] = 0.0f;
+        d[mOffset + 4] = 0.0f;
+        d[mOffset + 6] = 0.0f;
+        d[mOffset + 7] = 0.0f;
+        d[mOffset + 8] = 0.0f;
+        d[mOffset + 9] = 0.0f;
+        d[mOffset + 11] = 0.0f;
+    }
 
+    return m;
 }
 
 

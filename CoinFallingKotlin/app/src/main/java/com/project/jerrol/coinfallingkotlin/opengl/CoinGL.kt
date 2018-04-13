@@ -16,9 +16,9 @@ class CoinGL(context: Context) : GLSurfaceView(context) {
         // Set openGL version
         setEGLContextClientVersion(2)
 
-        setZOrderOnTop(true)
-        setEGLConfigChooser(8, 8, 8, 8, 16, 0)
-        holder.setFormat(PixelFormat.RGBA_8888)
+//        setZOrderOnTop(true)
+//        setEGLConfigChooser(8, 8, 8, 8, 16, 0)
+//        holder.setFormat(PixelFormat.RGBA_8888)
 
         mRenderer = CoinRenderer(context)
         setRenderer(mRenderer)

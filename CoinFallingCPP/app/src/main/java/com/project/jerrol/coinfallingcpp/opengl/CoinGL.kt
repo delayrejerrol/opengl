@@ -24,4 +24,11 @@ class CoinGL(context: Context) : GLSurfaceView(context) {
 
         renderMode = RENDERMODE_CONTINUOUSLY
     }
+
+    fun drawNewCoin(coinSize: Int) {
+        queueEvent ({
+            mRenderer?.drawNewCoin(coinSize)
+            mRenderer?.nativeClearSurface(false)
+        })
+    }
 }

@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
         main_layout.addView(mCoinGL, relativeLayoutParams)
 
         button.setOnClickListener({
+            mCoinGL?.drawNewCoin(editText.text.toString().toInt())
         })
     }
 
