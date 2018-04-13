@@ -26,15 +26,16 @@ Coin::Coin(GLuint currentCoinFace, float pointX, float pointY) {
     //mCurrentCoinFace = currentCoinFace;
     mTextureId = currentCoinFace;
 
-    mBase[0] = -50.0f; // Lefts
-    mBase[1] = 50.0f;  // Top
-    mBase[2] = 50.0f;  // Right
-    mBase[3] = -50.0f; // Bottom
+    mBase[0] = -60.0f; // Lefts
+    mBase[1] = 60.0f;  // Top
+    mBase[2] = 60.0f;  // Right
+    mBase[3] = -60.0f; // Bottom
 
     mTranslation[0] = (GLfloat) pointX;
     mTranslation[1] = (GLfloat) pointY;
 
     updateTransformedVertices();
+
 }
 
 Coin::~Coin() {

@@ -168,10 +168,11 @@ void CoinRenderer::change(int width, int height) {
 }
 
 void CoinRenderer::draw() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     if (!mClearSurface) {
         drawCoin();
@@ -192,39 +193,38 @@ void CoinRenderer::setupScaling(int width, int height) {
         scaleValue = scaleY;
     else
         scaleValue = scaleX;
+
+    LOGD("scaleValue %.2f", scaleValue);
 }
 
 void CoinRenderer::drawCoin() {
-    // glUseProgram(programHandle);
+
     if (tmpCoinSize == mCoinCollection.size()) {
-        // LOGD("drawCoin coin falling down");
         glUseProgram(imageHandle);
         long slowTime = GLUtils::currentTimeMillis() % 100000L;
+        //LOGD("slowTime %d", slowTime);
         int elapse = (int) ((0.01f) * (slowTime));
 
         for (unsigned i = 0; i < mCoinCollection.size(); i++) {
-            Coin* coin = mCoinCollection.at(i);
-            if (mCurrentTime < elapse) {
-                //int nextCoinFace = coin.getNextCoinFace();
-                //coin.setTextureId(textures[i]);
-                coin->setTextureId(coin->getTextureId());
-                coin->translate(0.0f, -(15.0f * scaleValue));
-                // LOGD("Coin Y %.2f", coin->getY());
-            }
-            //mModelMatrix->identity();
-            coin->Render(coin->getCurrentTextureId(), mMVPMatrix, mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc);
-        }
 
-        //LOGD("Elapse time: %d", elapse);
+            Coin* prevCoin = mCoinCollection.at(i);
+            //LOGD("Y: %.2f", prevCoin->getY());
+            //if (mCurrentTime < elapse) {
+            if (mCurrentTime < elapse) {
+                prevCoin->setTextureId(prevCoin->getTextureId());
+                prevCoin->translate(0.0f, -(20.0f * scaleValue));
+            }
+            //prevCoin->Render(prevCoin->getCurrentTextureId(), mMVPMatrix, mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc);
+            if (prevCoin->getY() < 300.0f) {
+                prevCoin->Render(prevCoin->getCurrentTextureId(), mMVPMatrix, mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc);
+            }
+        }
 
         if (!hasVisibleCoin()) {
             LOGD("All coins y < 0");
-            //glDeleteProgram(imageHandle);
-            // mClearSurface = true;
             clearSurface(true);
-            tmpCoinSize = -1;
+            tmpCoinSize = 0;
         }
-
         mCurrentTime = elapse;
     }
 }
@@ -232,21 +232,23 @@ void CoinRenderer::drawCoin() {
 void CoinRenderer::drawNewCoin(int coinSize) {
 
     LOGD("drawNewCoin called");
-    LOGD("Size of textures %d", (int) sizeof(textures));
+    // LOGD("Size of textures %d", (int) sizeof(textures));
+    LOGD("screenWidth %d", screenWidth);
+    LOGD("screenHeight %d", screenHeight);
     for (int i = 0; i < coinSize; i++) {
         //GLuint r = rand() % sizeof(textures);
         GLuint r = GLuint (i % TEXTURE_SIZE);
         LOGD("r = %d", r);
-        float pointX = rand() % screenWidth + 1;
+        float pointX = rand() % (int)(((screenWidth - 50.0f) - 100.0f) + 1) + 100.f;
         LOGD("PointX %.2f", pointX);
         float pointY = rand() % screenHeight + 1;
         LOGD("PointY %.2f", pointY);
-        Coin* coin = new Coin(r, pointX, pointY + screenHeight);
+        // Coin* coin = new Coin(r, pointX, pointY + screenHeight);
+        Coin* coin = new Coin(r, pointX - 50.0f, pointY + (screenHeight / 2)); // Same all height
         //coin->setTextureId(r);
         coin->setTextures(textures);
         mCoinCollection.push_back(coin);
         tmpCoinSize++;
-        if (tmpCoinSize == 0) tmpCoinSize++;
         LOGD("drawNewCoin %d", i);
     }
     LOGD("mCoinCollectionSize = %d", (int) mCoinCollection.size());
@@ -268,7 +270,7 @@ bool CoinRenderer::hasVisibleCoin() {
     bool hasVisibleCoin = false;
     for (int i = 0; i < mCoinCollection.size(); i++) {
         Coin* coin = mCoinCollection[i];
-        if (coin->getY() > 0) {
+        if (coin->getY() > -10.0) {
             hasVisibleCoin = true;
             break;
         }
@@ -326,7 +328,6 @@ Java_com_project_jerrol_coinfallingcpp_opengl_CoinRenderer_drawNewCoin(
         int coinSize
 ) {
 
-    // jclass arrayClass = (*env).FindClass("java/util/ArrayList");
     coinRenderer->drawNewCoin(coinSize);
 }
 

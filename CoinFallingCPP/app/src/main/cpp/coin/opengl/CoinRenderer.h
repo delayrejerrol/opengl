@@ -62,7 +62,7 @@ private:
     void drawCoin();
     void setupScaling(int width, int height);
 
-    int tmpCoinSize = -1;
+    int tmpCoinSize = 0;
 
     static const int TEXTURE_SIZE = 8;
 
