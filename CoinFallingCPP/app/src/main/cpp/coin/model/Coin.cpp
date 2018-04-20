@@ -15,21 +15,27 @@ static const GLshort mIndices[] = {
         0, 2, 3
 };
 
-static const GLfloat mUVCoord[] = {
-        0.0f, 0.0f,
-        0.0f, 1.0f,
+/*static const GLfloat mUVCoord[] = {
         1.0f, 1.0f,
-        1.0f, 0.0f
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f
+};*/
+static const GLfloat mUVCoord[] = {
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f
 };
 
-Coin::Coin(GLuint currentCoinFace, float pointX, float pointY) {
+Coin::Coin(GLuint currentCoinFace, float pointX, float pointY, float scaleValue) {
     //mCurrentCoinFace = currentCoinFace;
     mTextureId = currentCoinFace;
 
-    mBase[0] = -60.0f; // Lefts
-    mBase[1] = 60.0f;  // Top
-    mBase[2] = 60.0f;  // Right
-    mBase[3] = -60.0f; // Bottom
+    mBase[0] = -25.0f; // Lefts
+    mBase[1] =  25.0f; // Top
+    mBase[2] =  25.0f; // Right
+    mBase[3] = -25.0f; // Bottom
 
     mTranslation[0] = (GLfloat) pointX;
     mTranslation[1] = (GLfloat) pointY;
@@ -123,26 +129,9 @@ void Coin::Render(GLuint textureId, Matrix *mMVPMatrix, GLuint positionHandle, G
     // Draw the triangle
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mIndices);
 
-    // Disable vertex array
-    // glDisableVertexAttribArray(positionHandle);
-    // glDisableVertexAttribArray(texCoord);
-}
-
-int Coin::getCurrentCoinFace() {
-    return mCurrentCoinFace;
-}
-
-int Coin::getNextCoinFace() {
-    int nextCoinFace = mCurrentCoinFace;
-
-    if (nextCoinFace == 7) {
-        nextCoinFace = 0;
-    } else {
-        nextCoinFace++;
-    }
-
-    mCurrentCoinFace = nextCoinFace;
-    return nextCoinFace;
+    // Disable generic vertex attribute array
+    glDisableVertexAttribArray(positionHandle);
+    glDisableVertexAttribArray(texCoord);
 }
 
 GLuint Coin::getTextureId() {

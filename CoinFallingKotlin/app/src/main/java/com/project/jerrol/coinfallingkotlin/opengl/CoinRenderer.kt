@@ -192,7 +192,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
         GLES20.glViewport(0, 0, mScreenWidth.toInt(), mScreenHeight.toInt())
 
         // Clear our matrices
-        for (i in 0 until 64) {
+        for (i in 0 until 16) {
             mMatrixProjection[i] = 0.0f
             mMatrixView[i] = 0.0f
             mMatrixProjectionView[i] = 0.0f
@@ -200,7 +200,8 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
 
         // Setup our screen width and height for normal coin translation
         //Matrix.orthoM(mMatrixProjection, 0, 0f, mScreenWidth, 0.0f, mScreenHeight, 0f, 50f)
-        Matrix.frustumM(mMatrixProjection, 0, 0f, mScreenWidth, 0.0f, mScreenHeight, 1.0f, 50f)
+        //Matrix.frustumM(mMatrixProjection, 0, 0f, mScreenWidth, 0.0f, mScreenHeight, 1.0f, 50f)
+        Matrix.frustumM(mMatrixProjection, 0, mScreenWidth, 0.0f, mScreenHeight, 0.0f, 1.0f, 50f)
 
         // Set the camera position (View matrix)
         Matrix.setLookAtM(mMatrixView, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1.0f, 0.0f)
@@ -210,7 +211,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
 
         // Set camera to the upper top of the screen
         // Matrix.translateM(mMatrixProjectionView, 0, 0.0f, mScreenHeight, 0.0f)
-
+        Log.i("CoinRenderer", "ScreenHeight: $mScreenHeight")
         setupScaling()
     }
 
@@ -271,21 +272,22 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
         GLES20.glUseProgram(mImageProgramHandle)
 
         val elapseRealtime = SystemClock.elapsedRealtime() % 100000L
-        Log.i("CoinRenderer", "elapseRealtime: $elapseRealtime")
+        //Log.i("CoinRenderer", "elapseRealtime: $elapseRealtime")
         //val slowTime = SystemClock.uptimeMillis() % 100000L
         //Log.i("CoinRenderer", "slowTime: $slowTime")
         // translate each coin every 1 sec
         val translateCoinPositionY = (0.01f) * (elapseRealtime.toInt())
         val elapse = translateCoinPositionY.toInt()
 
-        Log.i("CoinRenderer", "Elapse: $elapse")
+        //Log.i("CoinRenderer", "Elapse: $elapse")
         for (coin in mCoinCollection) {
             if (mCurrentTime < elapse) {
                 val nextCoinFace = coin.getNextCoinFace(coin.getCurrentCoinFace())
                 //coin.setTextureId(updateGLTexture(coin.getTextureId(), nextCoinFace))
                 //coin.setTextureId(updateGLTexture(coin.getTextureId(), mTextures[nextCoinFace]))
                 coin.setTextureId(coin.getTextureId())
-                coin.translate(0.0f, -(15.0f * sScaleValue))
+                coin.translate(0.0f, 5.0f * sScaleValue)
+                Log.i("CoinRenderer", "Y: ${coin.getY()}")
             }
             /*coin.Render(mMatrixProjectionView, coin.getTextureId(),
                     mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc)*/
@@ -314,7 +316,8 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
             val pointX = random.nextInt(mScreenWidth.toInt()).toFloat()
             var pointY = random.nextInt(mScreenHeight.toInt()).toFloat()
 
-            val coin = Coin(currentCoinFace, pointX, pointY + mScreenHeight, sScaleValue)
+            //val coin = Coin(currentCoinFace, pointX, pointY + mScreenHeight, sScaleValue)
+            val coin = Coin(currentCoinFace, pointX, pointY , sScaleValue)
             // coin.setTextureId(loadGLTexture(i, currentCoinFace))
             // coin.setTextureId(mTextures[currentCoinFace])
             coin.setTextures(mTextures)
@@ -434,7 +437,7 @@ class CoinRenderer(val context: Context) : GLSurfaceView.Renderer {
     private fun hasCoinVisible(): Boolean {
         var hasCoinVisible = false
         for (coin in mCoinCollection) {
-            if (coin.getY() > 0) {
+            if (coin.getY() < mScreenHeight) {
                 hasCoinVisible = true
                 break
             }

@@ -23,7 +23,7 @@ class CoinGL(context: Context) : GLSurfaceView(context) {
         mRenderer = CoinRenderer(context)
         setRenderer(mRenderer)
 
-        renderMode = RENDERMODE_CONTINUOUSLY
+        // renderMode = RENDERMODE_CONTINUOUSLY
     }
 
     fun drawNewCoin(coinSize: Int) {

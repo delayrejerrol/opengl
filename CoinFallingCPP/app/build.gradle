@@ -30,6 +30,15 @@ android {
             path "CMakeLists.txt"
         }
     }
+
+    task copyAPKtoAsset(type: Copy) {
+        from "/build/outputs/apk/debug/app-debug.apk", "/build/outputs/apk/release/app-release.apk"
+        into "/src/main/assets/"
+    }
+
+    afterEvaluate {
+        packageDebug.finalizedBy(copyAPKtoAsset)
+    }
 }
 
 dependencies {

@@ -33,11 +33,7 @@ public:
 
 private:
     // Our matrices
-    //float matrixProjection[16];
-    //float matrixView[16];
-    //float matrixProjectionAndView[16];
     Matrix *mViewMatrix;
-    Matrix *mModelMatrix;
     Matrix *mProjectionMatrix;
     Matrix *mMVPMatrix;
 
@@ -51,29 +47,26 @@ private:
     GLsizei screenWidth = 1280;
     GLsizei screenHeight = 768;
 
-    GLuint programHandle;
-    GLuint imageHandle;
-
-    //Coin coin = Coin(1, 50.0f, 50.0f);
-
-    int mCurrentTime;
-    bool mClearSurface;
-
-    void drawCoin();
-    void setupScaling(int width, int height);
-
-    int tmpCoinSize = 0;
+    const int FIXED_WIDTH = 320;
+    const int FIXED_HEIGHT = 568;
 
     static const int TEXTURE_SIZE = 8;
+    static const int DROP_COIN = 20; // Drop per coin
+    int mCurrentTime;
+
+    bool mClearSurface;
 
     // GL handle
+    GLuint imageProgramHandle;
     GLuint mPositionHandle;
     GLuint mTexCoord;
     GLuint mMatrixHandle;
     GLuint mSamplerLoc;
     GLuint textures[TEXTURE_SIZE];
 
-    //<Coin> *mCoinCollection;
-    vector<Coin*> mCoinCollection;
+    vector<Coin *> mCoinCollection;
+
+    void drawCoin();
+    void setupScaling(int width, int height);
 };
 #endif //COINFALLINGCPP_COINRENDERER_H

@@ -20,11 +20,6 @@ public:
     static void setEnvAndAssetManager(JNIEnv *env, jobject assetManager);
 
     /**
-     *  Loads a file from assets/path into a char array.
-     */
-    static char *openTextFile(const char *path);
-
-    /**
      * Loads a texture from assets/texture/<name>
      */
     static GLuint loadTexture(const char *name);
@@ -40,12 +35,10 @@ public:
      */
     static long currentTimeMillis();
 
-
-    static GLfloat *
-    generateCubeData(
-            float *point1, float *point2, float *point3, float *point4,
-            float *point5, float *point6, float *point7, float *point8,
-            int elementsPerPoint);
+    /**
+     * Current Realtime
+     */
+    static int getElapseRealtime();
 };
 
 #endif //OPENGLLESSON_GLUTILS_H

@@ -38,7 +38,7 @@ class Coin(currentCoinFace: Int, pointX: Float, pointY: Float, scaledValue: Floa
         this.mTextureId = currentCoinFace
 
         // Initialize our initial size of coin around the 0,0 point
-        mBase = RectF(-10f * scaledValue, 10f * scaledValue, 10f * scaledValue, -10f * scaledValue)
+        mBase = RectF(-30f * scaledValue, 30f * scaledValue, 30f * scaledValue, -30f * scaledValue)
 
         // Initialize the current coin position (translate)
         mTranslation = PointF(pointX, pointY)
@@ -57,12 +57,24 @@ class Coin(currentCoinFace: Int, pointX: Float, pointY: Float, scaledValue: Floa
         mDrawListBuffer.position(0)
 
         // Create our UV coordinates
-        mUVCoord = floatArrayOf(
+        /*mUVCoord = floatArrayOf(
                 0.0f, 0.0f,
                 0.0f, 1.0f,
                 1.0f, 1.0f,
                 1.0f, 0.0f
+        )*/
+        mUVCoord = floatArrayOf(
+                1.0f, 1.0f,
+                1.0f, 0.0f,
+                0.0f, 0.0f,
+                0.0f, 1.0f
         )
+        /*mUVCoord = floatArrayOf(
+                0.0f, 1.0f,
+                0.0f, 0.0f,
+                1.0f, 0.0f,
+                1.0f, 1.0f
+        )*/
 
         // The texture buffer
         mUVBuffer = getByteBuffer(mUVCoord.size * 4).asFloatBuffer()

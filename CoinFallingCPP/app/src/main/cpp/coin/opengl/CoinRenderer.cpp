@@ -16,16 +16,6 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
-const char *VERTEX_SHADER_SOLID_COLOR = "uniform mat4 uMVPMatrix; \n"
-                                        "attribute vec4 vPosition; \n"
-                                        "void main() { \n"
-                                        "    gl_Position = uMVPMatrix * vPosition; \n"
-                                        "}";
-const char *FRAGMENT_SHADER_SOLID_COLOR = "precision mediump float; \n"
-                                          "void main() { \n"
-                                          "    gl_FragColor = vec4(0.5,0,0,1); \n"
-                                          "}";
-
 const char *VERTEXT_SHADER_IMAGE = "uniform mat4 uMVPMatrix; \n"
                                    "attribute vec4 vPosition; \n"
                                    "attribute vec2 a_texCoord; \n"
@@ -44,7 +34,6 @@ const char *FRAGMENT_SHADER_IMAGE = "precision mediump float; \n"
 
 CoinRenderer::CoinRenderer() {
     // The constructor
-    mModelMatrix = NULL;
     mMVPMatrix = NULL;
     mProjectionMatrix = NULL;
     mViewMatrix = NULL;
@@ -52,8 +41,6 @@ CoinRenderer::CoinRenderer() {
 
 CoinRenderer::~CoinRenderer() {
     // The destructor
-    delete mModelMatrix;
-    mModelMatrix = NULL;
     delete mMVPMatrix;
     mMVPMatrix = NULL;
     delete mProjectionMatrix;
@@ -67,25 +54,21 @@ void CoinRenderer::create() {
     setupScaling(0, 0);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glEnable(GL_CULL_FACE);
 
-    programHandle = GLUtils::createProgram(&VERTEX_SHADER_SOLID_COLOR, &FRAGMENT_SHADER_SOLID_COLOR);
-    if (!programHandle) {
-        LOGD("Could not create a program.");
-    }
-
-    imageHandle = GLUtils::createProgram(&VERTEXT_SHADER_IMAGE, &FRAGMENT_SHADER_IMAGE);
-    if (!imageHandle) {
+    imageProgramHandle = GLUtils::createProgram(&VERTEXT_SHADER_IMAGE, &FRAGMENT_SHADER_IMAGE);
+    if (!imageProgramHandle) {
         LOGD("Could not create a program.");
     }
 
     // Get handle to vertex shader's vPosition number
-    mPositionHandle = (GLuint) glGetAttribLocation(imageHandle, "vPosition");
+    mPositionHandle = (GLuint) glGetAttribLocation(imageProgramHandle, "vPosition");
     // Get handle to texture coordinates location
-    mTexCoord = (GLuint) glGetAttribLocation(imageHandle, "a_texCoord");
+    mTexCoord = (GLuint) glGetAttribLocation(imageProgramHandle, "a_texCoord");
     // Get handle to shape's transformation matrix
-    mMatrixHandle = (GLuint) glGetUniformLocation(imageHandle, "uMVPMatrix");
+    mMatrixHandle = (GLuint) glGetUniformLocation(imageProgramHandle, "uMVPMatrix");
     // Get handle to textures locations
-    mSamplerLoc = (GLuint) glGetUniformLocation(imageHandle, "s_texture");
+    mSamplerLoc = (GLuint) glGetUniformLocation(imageProgramHandle, "s_texture");
 
     // createTextures
     textures[0] = GLUtils::loadTexture("coin/coin_1.png");
@@ -97,46 +80,26 @@ void CoinRenderer::create() {
     textures[6] = GLUtils::loadTexture("coin/coin_7.png");
     textures[7] = GLUtils::loadTexture("coin/coin_8.png");
 
-    mModelMatrix = new Matrix();
     mMVPMatrix = new Matrix();
 
     mClearSurface = true;
 }
 
 void CoinRenderer::change(int width, int height) {
-    screenWidth = width;
-    screenHeight = height;
+//    screenWidth = width;
+//    screenHeight = height;
 
-    glViewport(0, 0, screenWidth, screenHeight);
-
-    /*for (int i = 0; i < 16; i++) {
-        matrixProjection[i] = 0.0f;
-        matrixView[i] = 0.0f;
-        matrixProjectionAndView[i] = 0.0f;
-    }
-
-    Matrix::orthoM(matrixProjection, 0, 0.0f, screenWidth, 0.0f, screenHeight, 0, 50.0);*/
-
-    //matrixView = Matrix::newLookAt(0, 0, 1f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+    glViewport(0, 0, width, height);
 
     // Create a new perspective projection matrix. The height will stay the same
     // while the width will vary as per aspect ratio.
-   /* float ratio = (float) width / height;
-    float left = 0.0f;
-    float right = width;
-    float bottom = 0.0f;
-    float top = height;
-    float near = 0.0f;
-    float far = 50.0f;*/
-
-    float left = 0.0f;
-    float right = width;
-    float bottom = 0.0f;
-    float top = height;
+    float left = FIXED_WIDTH;
+    float right = 0.0f;
+    float bottom = FIXED_HEIGHT;
+    float top = 0.0f;
     float near = 1.0f;
     float far = 50.0f;
 
-    //mProjectionMatrix = Matrix::orthoM(0, 0.0f, screenWidth, 0.0f, screenHeight, 0.0f, 50.0f);
     mProjectionMatrix = Matrix::newFrustum(left, right, bottom, top, near, far);
 
     // Position the eye in front of the origin.
@@ -157,26 +120,23 @@ void CoinRenderer::change(int width, int height) {
     // Set the view matrix.
     mViewMatrix = Matrix::newLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
 
-    // model * view
-    //mMVPMatrix->multiply(*mViewMatrix, *mModelMatrix);
-
     // model * view * projection
-    //mMVPMatrix->multiply(*mProjectionMatrix, *mMVPMatrix);
-    mMVPMatrix->multiply(*mProjectionMatrix, *mViewMatrix);
+     mMVPMatrix->multiply(*mProjectionMatrix, *mViewMatrix);
 
     setupScaling(width, height);
 }
 
 void CoinRenderer::draw() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_BLEND);
-    // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     if (!mClearSurface) {
         drawCoin();
     }
+
+    glDisable(GL_BLEND);
 }
 
 void CoinRenderer::setupScaling(int width, int height) {
@@ -185,8 +145,10 @@ void CoinRenderer::setupScaling(int width, int height) {
     heightPixel = height;
 
     // Orientation is assumed portrait
-    scaleX = widthPixel / 320.0f;
-    scaleY = heightPixel / 480.0f;
+    //scaleX = widthPixel / 320.0f;
+    //scaleY = heightPixel / 480.0f;
+    scaleX = widthPixel / FIXED_WIDTH;
+    scaleY = heightPixel / FIXED_HEIGHT;
 
     // Get our uniform scalier
     if (scaleX > scaleY)
@@ -198,58 +160,52 @@ void CoinRenderer::setupScaling(int width, int height) {
 }
 
 void CoinRenderer::drawCoin() {
+    glUseProgram(imageProgramHandle);
+    //long slowTime = GLUtils::currentTimeMillis() % 100000L;
+    // int elapse = (int) ((0.01f) * (slowTime));
+    int elapse = GLUtils::getElapseRealtime();
 
-    if (tmpCoinSize == mCoinCollection.size()) {
-        glUseProgram(imageHandle);
-        long slowTime = GLUtils::currentTimeMillis() % 100000L;
-        //LOGD("slowTime %d", slowTime);
-        int elapse = (int) ((0.01f) * (slowTime));
+//  LOGI("getElapseReal Time: %d", GLUtils::getElapseRealtime());
+//  LOGI("elapse Time: %d", elapse);
 
-        for (unsigned i = 0; i < mCoinCollection.size(); i++) {
+    for (unsigned i = 0; i < mCoinCollection.size(); i++) {
 
-            Coin* prevCoin = mCoinCollection.at(i);
-            //LOGD("Y: %.2f", prevCoin->getY());
-            //if (mCurrentTime < elapse) {
-            if (mCurrentTime < elapse) {
-                prevCoin->setTextureId(prevCoin->getTextureId());
-                prevCoin->translate(0.0f, -(20.0f * scaleValue));
-            }
-            //prevCoin->Render(prevCoin->getCurrentTextureId(), mMVPMatrix, mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc);
-            if (prevCoin->getY() < 300.0f) {
-                prevCoin->Render(prevCoin->getCurrentTextureId(), mMVPMatrix, mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc);
-            }
+        Coin* prevCoin = mCoinCollection.at(i);
+        if (mCurrentTime < elapse) {
+            prevCoin->setTextureId(prevCoin->getTextureId());
+            prevCoin->translate(0.0f, 10.0f);
         }
-
-        if (!hasVisibleCoin()) {
-            LOGD("All coins y < 0");
-            clearSurface(true);
-            tmpCoinSize = 0;
-        }
-        mCurrentTime = elapse;
+        prevCoin->Render(prevCoin->getCurrentTextureId(), mMVPMatrix, mPositionHandle, mTexCoord, mMatrixHandle, mSamplerLoc);
     }
+    if (!hasVisibleCoin()) {
+        LOGD("All coins y < 0");
+        clearSurface(true);
+    }
+
+    mCurrentTime = elapse;
 }
 
 void CoinRenderer::drawNewCoin(int coinSize) {
-
     LOGD("drawNewCoin called");
     // LOGD("Size of textures %d", (int) sizeof(textures));
     LOGD("screenWidth %d", screenWidth);
     LOGD("screenHeight %d", screenHeight);
+    LOGD("FIXED_WIDTH %d", FIXED_WIDTH);
+    LOGD("FIXED_HEIGHT %d", FIXED_HEIGHT);
     for (int i = 0; i < coinSize; i++) {
-        //GLuint r = rand() % sizeof(textures);
         GLuint r = GLuint (i % TEXTURE_SIZE);
         LOGD("r = %d", r);
-        float pointX = rand() % (int)(((screenWidth - 50.0f) - 100.0f) + 1) + 100.f;
+        float pointX = rand() % (int)(((FIXED_WIDTH - 48) - 48) + 1) + 48;
+        //float pointX = rand() % (FIXED_WIDTH) + 48;;
         LOGD("PointX %.2f", pointX);
-        float pointY = rand() % screenHeight + 1;
+        float pointY = rand() % 310 + 1;
         LOGD("PointY %.2f", pointY);
         // Coin* coin = new Coin(r, pointX, pointY + screenHeight);
-        Coin* coin = new Coin(r, pointX - 50.0f, pointY + (screenHeight / 2)); // Same all height
-        //coin->setTextureId(r);
+        //Coin* coin = new Coin(r, pointX - 50.0f, pointY + (screenHeight / 2)); // Same all height
+        Coin* coin = new Coin(r, pointX, pointY, scaleValue); // Same all height
         coin->setTextures(textures);
         mCoinCollection.push_back(coin);
-        tmpCoinSize++;
-        LOGD("drawNewCoin %d", i);
+        // LOGD("drawNewCoin %d", i);
     }
     LOGD("mCoinCollectionSize = %d", (int) mCoinCollection.size());
     LOGD("drawNewCoin end");
@@ -257,10 +213,6 @@ void CoinRenderer::drawNewCoin(int coinSize) {
 
 void CoinRenderer::clearSurface(bool isClearSurface) {
     if (isClearSurface) {
-        for (int i = 0; i < mCoinCollection.size(); i++) {
-            Coin* coin = mCoinCollection[i];
-            delete coin;
-        }
         mCoinCollection.clear();
     }
     mClearSurface = isClearSurface;
@@ -268,9 +220,9 @@ void CoinRenderer::clearSurface(bool isClearSurface) {
 
 bool CoinRenderer::hasVisibleCoin() {
     bool hasVisibleCoin = false;
-    for (int i = 0; i < mCoinCollection.size(); i++) {
-        Coin* coin = mCoinCollection[i];
-        if (coin->getY() > -10.0) {
+    for (unsigned i = 0; i < mCoinCollection.size(); i++) {
+        Coin *coin = mCoinCollection.at(i);
+        if (coin->getY() < 410.0f + 20.0f) {
             hasVisibleCoin = true;
             break;
         }

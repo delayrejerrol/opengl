@@ -80,10 +80,6 @@ public:
     * @return the length of a vector
     */
     static float length(float x, float y, float z);
-
-    static Matrix *orthoM(int mOffset,
-                       float left, float right, float bottom, float top,
-                       float near, float far);
 };
 
 #endif
